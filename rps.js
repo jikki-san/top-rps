@@ -7,10 +7,35 @@ function getComputerChoice() {
   return choices[choiceIndex];
 }
 
-function getHumanChoice() {
-  const choice = prompt("Rock, paper, or scissors?");
-  // TODO: Add input validation to ensure only one of these three elements is chosen
-  return choice.toLowerCase();
+function updateResultDisplay(msg) {
+  const resultDisplay = document.querySelector("#results");
+  resultDisplay.textContent = msg;
+}
+
+function updateScores(winner) {
+  const humanScoreDisplay = document.querySelector("#humanScore");
+  const cpuScoreDisplay = document.querySelector("#cpuScore");
+  let currentHumanScore = +humanScoreDisplay.textContent;
+  let currentCpuScore = +cpuScoreDisplay.textContent;
+
+  if (winner === "human") {
+    currentHumanScore += 1;
+    humanScoreDisplay.textContent = `Human: ${currentHumanScore}`;
+    if (currentHumanScore === 5) {
+      updateWinner("Human");
+    }
+  } else if (winner === "computer") {
+    currentCpuScore += 1;
+    cpuScoreDisplay.textContent = `CPU: ${currentCpuScore}`;
+    if (currentCpuScore === 5) {
+      updateWinner("CPU");
+    }
+  }
+}
+
+function updateWinner(winner) {
+  const winDisplay = document.querySelector("#winner");
+  winDisplay.textContent = `${winner} wins!`;
 }
 
 function playRound(humanChoice, computerChoice) {
@@ -20,46 +45,84 @@ function playRound(humanChoice, computerChoice) {
   const computerChoiceIndex = choices.findIndex(
     (choice) => choice === computerChoice
   );
-  // TODO: Add input validation (e.g. we don't find one or both of the indices)
+
+  if (humanChoiceIndex === computerChoiceIndex) {
+    updateResultDisplay(`Tie game! You both played ${humanChoice}.`);
+    return;
+  }
+
+  const event = new CustomEvent("win");
+  let scoreDiv;
+
   if (humanChoiceIndex === (computerChoiceIndex + 1) % choices.length) {
-    console.log(`You win! ${capitalize(humanChoice)} beats ${computerChoice}.`);
-    return "human";
+    updateResultDisplay(
+      `You win! ${capitalize(humanChoice)} beats ${computerChoice}.`
+    );
+    scoreDiv = document.querySelector("#humanScore");
   } else if (computerChoiceIndex === (humanChoiceIndex + 1) % choices.length) {
-    console.log(
+    updateResultDisplay(
       `You lose! ${capitalize(computerChoice)} beats ${humanChoice}.`
     );
-    return "computer";
-  } else {
-    console.log(`Tie game! You both played ${humanChoice}.`);
-    return "draw";
+    scoreDiv = document.querySelector("#cpuScore");
   }
+
+  scoreDiv.dispatchEvent(event);
 }
 
-function playGame() {
-  let humanScore = 0;
-  let computerScore = 0;
+function getHumanChoice(event) {
+  let humanChoiceIndex;
 
-  // TODO: refactor to ignore ties in the round count
-  for (let i = 0; i < 5; i++) {
-    const humanChoice = getHumanChoice();
-    const computerChoice = getComputerChoice();
-    const roundWinner = playRound(humanChoice, computerChoice);
-
-    if (roundWinner === "human") {
-      humanScore += 1;
-    } else if (roundWinner === "computer") {
-      computerScore += 1;
-    }
+  switch (event.target.id) {
+    case "rock":
+      humanChoiceIndex = 0;
+      break;
+    case "paper":
+      humanChoiceIndex = 1;
+      break;
+    case "scissors":
+      humanChoiceIndex = 2;
+      break;
   }
 
-  console.log(`Final Scores: Human ${humanScore} - CPU ${computerScore}`);
-  if (humanScore > computerScore) {
-    console.log("You win!");
-  } else if (humanScore < computerScore) {
-    console.log("You lose!");
-  } else {
-    console.log("Draw!");
-  }
+  playRound(choices[humanChoiceIndex], getComputerChoice());
 }
 
-playGame();
+const buttonContainer = document.querySelector("#buttonContainer");
+buttonContainer.addEventListener("click", getHumanChoice);
+
+const humanScoreDisplay = document.querySelector("#humanScore");
+humanScoreDisplay.addEventListener("win", (event) => {
+  let currentScore = +event.target.textContent;
+  currentScore += 1;
+  event.target.textContent = currentScore;
+  if (currentScore === 5) {
+    const gameWin = new CustomEvent("gameover", {
+      detail: {
+        winner: "human",
+      },
+    });
+    const winDisplay = document.querySelector("#winner");
+    winDisplay.dispatchEvent(gameWin);
+  }
+});
+
+const cpuScoreDisplay = document.querySelector("#cpuScore");
+cpuScoreDisplay.addEventListener("win", (event) => {
+  let currentScore = +event.target.textContent;
+  currentScore += 1;
+  event.target.textContent = currentScore;
+  if (currentScore === 5) {
+    const gameWin = new CustomEvent("gameover", {
+      detail: {
+        winner: "computer",
+      },
+    });
+    const winDisplay = document.querySelector("#winner");
+    winDisplay.dispatchEvent(gameWin);
+  }
+});
+
+const winDisplay = document.querySelector("#winner");
+winDisplay.addEventListener("gameover", (event) => {
+  event.target.textContent = `${capitalize(event.detail.winner)} wins!`;
+});

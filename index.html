@@ -3,8 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="rps.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="rps.js"></script>
     <title>Rock Paper Scissors</title>
   </head>
-  <body></body>
+  <body>
+    <div id="results"></div>
+    <div id="buttonContainer">
+      <button id="rock">Rock</button>
+      <button id="paper">Paper</button>
+      <button id="scissors">Scissors</button>
+    </div>
+    <div class="container">
+      <div class="label">You:</div>
+      <div id="humanScore">0</div>
+    </div>
+    <div class="container">
+      <div class="label">CPU:</div>
+      <div id="cpuScore">0</div>
+    </div>
+    <div id="winner"></div>
+  </body>
 </html>
